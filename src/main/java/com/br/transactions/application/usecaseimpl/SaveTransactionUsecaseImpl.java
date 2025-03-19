@@ -3,6 +3,7 @@ package com.br.transactions.application.usecaseimpl;
 import com.br.transactions.application.gateway.transaction.TransactionGateway;
 import com.br.transactions.core.domain.transaction.SaveTransactionDTO;
 import com.br.transactions.usecase.transaction.SaveTransactionUsecase;
+import org.apache.coyote.BadRequestException;
 
 public class SaveTransactionUsecaseImpl implements SaveTransactionUsecase {
 
@@ -13,7 +14,7 @@ public class SaveTransactionUsecaseImpl implements SaveTransactionUsecase {
     }
 
     @Override
-    public void execute(SaveTransactionDTO saveTransactionDTO) {
+    public void execute(SaveTransactionDTO saveTransactionDTO) throws BadRequestException {
         transactionGateway.saveTransaction(saveTransactionDTO);
     }
 }
