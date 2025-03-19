@@ -1,8 +1,8 @@
-package com.br.transactions.application.usecaseimpl;
+package com.br.transactions.application.usecaseimpl.save;
 
 import com.br.transactions.application.gateway.transaction.TransactionGateway;
 import com.br.transactions.core.domain.transaction.SaveTransactionDTO;
-import com.br.transactions.usecase.transaction.SaveTransactionUsecase;
+import com.br.transactions.usecase.transaction.save.SaveTransactionUsecase;
 import org.apache.coyote.BadRequestException;
 
 public class SaveTransactionUsecaseImpl implements SaveTransactionUsecase {

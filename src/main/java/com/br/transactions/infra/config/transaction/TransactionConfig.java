@@ -1,8 +1,8 @@
 package com.br.transactions.infra.config.transaction;
 
 import com.br.transactions.application.gateway.transaction.TransactionGateway;
-import com.br.transactions.application.usecaseimpl.SaveTransactionUsecaseImpl;
-import com.br.transactions.usecase.transaction.SaveTransactionUsecase;
+import com.br.transactions.application.usecaseimpl.save.SaveTransactionUsecaseImpl;
+import com.br.transactions.usecase.transaction.save.SaveTransactionUsecase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

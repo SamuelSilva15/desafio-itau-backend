@@ -35,6 +35,15 @@ public class TransactionGatewayImpl implements TransactionGateway {
 
     }
 
+    @Override
+    public void deleteById(Long transactionId) {
+        try {
+            transactionRepository.deleteById(transactionId);
+        } catch (Exception e) {
+            throw new TransactionException();
+        }
+    }
+
     private void validateSaveTransactionDTO(SaveTransactionDTO saveTransactionDTO) {
         Set<ConstraintViolation<SaveTransactionDTO>> violations = validator.validate(saveTransactionDTO);
         if (!violations.isEmpty()) {

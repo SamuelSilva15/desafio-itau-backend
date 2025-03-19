@@ -10,6 +10,7 @@ import org.apache.coyote.BadRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,11 +19,13 @@ import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,11 +48,14 @@ class TransactionGatewayImplTest {
     }
 
     @Test
-    void saveTransaction() throws BadRequestException {
+    void saveTransactionSucessfully() throws BadRequestException {
         Set<ConstraintViolation<SaveTransactionDTO>> violations = new HashSet<>();
         when(validator.validate(saveTransactionDTO)).thenReturn(violations);
 
         transactionGatewayImpl.saveTransaction(saveTransactionDTO);
+
+        ArgumentCaptor<Transaction> transactionArgumentCaptor = ArgumentCaptor.forClass(Transaction.class);
+        verify(transactionRepository).save(transactionArgumentCaptor.capture());
     }
 
     @Test
@@ -60,7 +66,7 @@ class TransactionGatewayImplTest {
             transactionGatewayImpl.saveTransaction(saveTransactionDTO);
         });
 
-        assertTrue(BadRequestException.class.equals(exception.getClass()));}
+        assertEquals(BadRequestException.class, exception.getClass());}
 
     @Test
     void throwTransactionExceptionWhenViolationsInSaveTransactionDTOIsNotEmpty() {
@@ -73,7 +79,7 @@ class TransactionGatewayImplTest {
             transactionGatewayImpl.saveTransaction(saveTransactionDTO);
         });
 
-        assertTrue(TransactionException.class.equals(exception.getClass()));
+        assertEquals(TransactionException.class, exception.getClass());
     }
 
     @Test
@@ -87,7 +93,27 @@ class TransactionGatewayImplTest {
             transactionGatewayImpl.saveTransaction(saveTransactionDTO);
         });
 
-        assertTrue(TransactionException.class.equals(exception.getClass()));
+        assertEquals(TransactionException.class, exception.getClass());
+    }
+
+    @Test
+    void deleteTransactionSucessfully() {
+        doNothing().when(transactionRepository).deleteById(1L);
+
+        transactionGatewayImpl.deleteById(1L);
+
+        verify(transactionRepository).deleteById(1L);
+    }
+
+    @Test
+    void throwTransactionExceptionWhenTransactionIdIsNotFound() {
+        doThrow(new TransactionException()).when(transactionRepository).deleteById(1L);
+
+        TransactionException exception = assertThrows(TransactionException.class, () -> {
+            transactionGatewayImpl.deleteById(1L);
+        });
+
+        assertEquals(TransactionException.class, exception.getClass());
     }
 
     private SaveTransactionDTO createSaveTransactionDTO() {
