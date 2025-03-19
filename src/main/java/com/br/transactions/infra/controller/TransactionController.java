@@ -26,13 +26,13 @@ public class TransactionController {
     }
 
     @PostMapping
-    ResponseEntity<HttpStatus> salvaTransacao(@RequestBody SaveTransactionDTO saveTransactionDTO) throws BadRequestException {
+    ResponseEntity<HttpStatus> saveTransaction(@RequestBody SaveTransactionDTO saveTransactionDTO) throws BadRequestException {
         saveTransactionUsecase.execute(saveTransactionDTO);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{transactionId}")
-    ResponseEntity<HttpStatus> deletaTransacao(@PathVariable("transactionId") Long transactionId)  {
+    ResponseEntity<HttpStatus> deleteTransaction(@PathVariable("transactionId") Long transactionId)  {
         deleteTransactionByIdUsecase.execute(transactionId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
