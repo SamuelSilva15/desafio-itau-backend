@@ -1,6 +1,7 @@
 package com.br.transactions.infra.service;
 
 import com.br.transactions.application.gateway.transaction.TransactionGateway;
+import com.br.transactions.core.domain.transaction.GetStatisticLastMinuteDTO;
 import com.br.transactions.core.domain.transaction.SaveTransactionDTO;
 import com.br.transactions.infra.entity.transaction.Transaction;
 import com.br.transactions.infra.exception.transaction.TransactionException;
@@ -12,6 +13,7 @@ import lombok.AllArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
 import java.util.Set;
 
 @Service
@@ -39,6 +41,15 @@ public class TransactionGatewayImpl implements TransactionGateway {
     public void deleteById(Long transactionId) {
         try {
             transactionRepository.deleteById(transactionId);
+        } catch (Exception e) {
+            throw new TransactionException();
+        }
+    }
+
+    @Override
+    public GetStatisticLastMinuteDTO getStatisticLastMinuteDTO() {
+        try {
+            return transactionRepository.findStatisticyDataHoraBetween(OffsetDateTime.now(), OffsetDateTime.now().plusMinutes(5));
         } catch (Exception e) {
             throw new TransactionException();
         }
