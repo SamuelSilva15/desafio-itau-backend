@@ -6,6 +6,7 @@ import com.br.transactions.core.domain.transaction.SaveTransactionDTO;
 import com.br.transactions.infra.entity.transaction.Transaction;
 import com.br.transactions.infra.exception.transaction.TransactionException;
 import com.br.transactions.infra.repository.transaction.TransactionRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
@@ -40,7 +41,8 @@ public class TransactionGatewayImpl implements TransactionGateway {
     @Override
     public void deleteById(Long transactionId) {
         try {
-            transactionRepository.deleteById(transactionId);
+            Transaction transaction = transactionRepository.findById(transactionId).orElseThrow(EntityNotFoundException::new) ;
+            transactionRepository.delete(transaction);
         } catch (Exception e) {
             throw new TransactionException();
         }

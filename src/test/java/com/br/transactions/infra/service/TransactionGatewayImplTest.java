@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -87,16 +88,18 @@ class TransactionGatewayImplTest {
 
     @Test
     void deleteTransactionSucessfully() {
-        doNothing().when(transactionRepository).deleteById(1L);
+        when(transactionRepository.findById(any())).thenReturn(Optional.of(new Transaction(saveTransactionDTO)));
+        doNothing().when(transactionRepository).delete(any());
 
         transactionGatewayImpl.deleteById(1L);
 
-        verify(transactionRepository).deleteById(1L);
+        verify(transactionRepository).delete(any());
     }
 
     @Test
     void throwTransactionExceptionWhenTransactionIdIsNotFound() {
-        doThrow(new TransactionException()).when(transactionRepository).deleteById(1L);
+        when(transactionRepository.findById(any())).thenReturn(Optional.of(new Transaction(saveTransactionDTO)));
+        doThrow(new TransactionException()).when(transactionRepository).delete(any());
 
         TransactionException exception = assertThrows(TransactionException.class, () -> {
             transactionGatewayImpl.deleteById(1L);

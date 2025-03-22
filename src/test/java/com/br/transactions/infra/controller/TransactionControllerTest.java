@@ -5,7 +5,10 @@ import com.br.transactions.core.domain.transaction.SaveTransactionDTO;
 import com.br.transactions.infra.entity.transaction.Transaction;
 import com.br.transactions.infra.repository.transaction.TransactionRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,13 +21,14 @@ import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TransactionControllerTest {
 
     @Autowired
@@ -37,6 +41,7 @@ class TransactionControllerTest {
     private TransactionRepository transactionRepository;
 
     @Test
+    @Order(1)
     void saveTransactionSucessfully() throws Exception {
         SaveTransactionDTO saveTransactionDTO = createTransaction();
 
@@ -52,6 +57,7 @@ class TransactionControllerTest {
     }
 
     @Test
+    @Order(2)
     void throwUnprocessableEntityWhenValueIsNull() throws Exception {
         SaveTransactionDTO saveTransactionDTO = new SaveTransactionDTO(null, OffsetDateTime.now());
         String transactionJson = objectMapper.writeValueAsString(saveTransactionDTO);
@@ -67,6 +73,7 @@ class TransactionControllerTest {
     }
 
     @Test
+    @Order(3)
     void throwUnprocessableEntityWhenValueIsNegative() throws Exception {
         SaveTransactionDTO saveTransactionDTO = new SaveTransactionDTO(-10.5F, OffsetDateTime.now());
         String transactionJson = objectMapper.writeValueAsString(saveTransactionDTO);
@@ -82,6 +89,7 @@ class TransactionControllerTest {
     }
 
     @Test
+    @Order(4)
     void throwUnprocessableEntityWhenDateAnHourIsNull() throws Exception {
         SaveTransactionDTO saveTransactionDTO = new SaveTransactionDTO(1F, null);
 
@@ -97,6 +105,7 @@ class TransactionControllerTest {
     }
 
     @Test
+    @Order(5)
     void throwUnprocessableEntityWhenDateAnHourIsFuture() throws Exception {
         SaveTransactionDTO saveTransactionDTO = new SaveTransactionDTO(1F, OffsetDateTime.now().plus(5, ChronoUnit.DAYS));
 
@@ -112,6 +121,7 @@ class TransactionControllerTest {
     }
 
     @Test
+    @Order(6)
     void throwBadRequestWhenJsonIsInvalid() throws Exception {
         String invalidJson = "{ \"valor\": 10, \"dataHora\": }";
 
@@ -127,6 +137,7 @@ class TransactionControllerTest {
     }
 
     @Test
+    @Order(7)
     void deleteTransactionByIdSucessfully() throws Exception {
         createTransaction();
         mockMvc.perform(delete("/transacao/{transactionId}", 1L)
@@ -138,16 +149,18 @@ class TransactionControllerTest {
     }
 
     @Test
+    @Order(7)
     void throwBadRequestWhenTransactionIdDontExists() throws Exception {
-        mockMvc.perform(delete("/transacao/{transactionId}", 1L)
+        mockMvc.perform(delete("/transacao/{transactionId}", 21L)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isUnprocessableEntity())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
     }
 
     @Test
+    @Order(8)
     void getTransactionsLastMinuteSucessfully() throws Exception {
         String response = mockMvc.perform(get("/transacao/estatistica")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -166,13 +179,21 @@ class TransactionControllerTest {
     }
 
     @Test
+    @Order(9)
     void throwBadRequestWhenQueryReturnsError() throws Exception {
+        Transaction t1 = new Transaction();
+        t1.setValor(Float.MAX_VALUE);
+        t1.setDataHora(OffsetDateTime.now().minusSeconds(30));
+        transactionRepository.save(t1);
+
         mockMvc.perform(get("/transacao/estatistica")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadGateway())
+                .andExpect(status().isUnprocessableEntity())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
+
+        transactionRepository.delete(t1);
     }
 
     private SaveTransactionDTO createTransaction() {
