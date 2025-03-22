@@ -1,5 +1,6 @@
 package com.br.transactions.infra.controller;
 
+import com.br.transactions.core.domain.transaction.GetStatisticLastMinuteDTO;
 import com.br.transactions.core.domain.transaction.SaveTransactionDTO;
 import com.br.transactions.infra.entity.transaction.Transaction;
 import com.br.transactions.infra.repository.transaction.TransactionRepository;
@@ -11,9 +12,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,11 +38,11 @@ class TransactionControllerTest {
 
     @Test
     void saveTransactionSucessfully() throws Exception {
-        SaveTransactionDTO saveTransactionDTO = new SaveTransactionDTO(1F, OffsetDateTime.now());
+        SaveTransactionDTO saveTransactionDTO = createTransaction();
 
         String transactionJson = objectMapper.writeValueAsString(saveTransactionDTO);
 
-        mockMvc.perform(post("/transaction")
+        mockMvc.perform(post("/transacao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(transactionJson))
                 .andExpect(status().isCreated())
@@ -52,7 +57,7 @@ class TransactionControllerTest {
         String transactionJson = objectMapper.writeValueAsString(saveTransactionDTO);
 
 
-        mockMvc.perform(post("/transaction")
+        mockMvc.perform(post("/transacao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(transactionJson))
                 .andExpect(status().isUnprocessableEntity())
@@ -67,7 +72,7 @@ class TransactionControllerTest {
         String transactionJson = objectMapper.writeValueAsString(saveTransactionDTO);
 
 
-        mockMvc.perform(post("/transaction")
+        mockMvc.perform(post("/transacao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(transactionJson))
                 .andExpect(status().isUnprocessableEntity())
@@ -82,7 +87,7 @@ class TransactionControllerTest {
 
         String transactionJson = objectMapper.writeValueAsString(saveTransactionDTO);
 
-        mockMvc.perform(post("/transaction")
+        mockMvc.perform(post("/transacao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(transactionJson))
                 .andExpect(status().isUnprocessableEntity())
@@ -97,7 +102,7 @@ class TransactionControllerTest {
 
         String transactionJson = objectMapper.writeValueAsString(saveTransactionDTO);
 
-        mockMvc.perform(post("/transaction")
+        mockMvc.perform(post("/transacao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(transactionJson))
                 .andExpect(status().isUnprocessableEntity())
@@ -112,7 +117,7 @@ class TransactionControllerTest {
 
         String transactionJson = objectMapper.writeValueAsString(invalidJson);
 
-        mockMvc.perform(post("/transaction")
+        mockMvc.perform(post("/transacao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(transactionJson))
                 .andExpect(status().isBadRequest())
@@ -124,7 +129,7 @@ class TransactionControllerTest {
     @Test
     void deleteTransactionByIdSucessfully() throws Exception {
         createTransaction();
-        mockMvc.perform(delete("/transaction/{transactionId}", 1L)
+        mockMvc.perform(delete("/transacao/{transactionId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn()
@@ -134,17 +139,45 @@ class TransactionControllerTest {
 
     @Test
     void throwBadRequestWhenTransactionIdDontExists() throws Exception {
-        mockMvc.perform(delete("/transaction/{transactionId}", 1L)
+        mockMvc.perform(delete("/transacao/{transactionId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
     }
 
+    @Test
+    void getTransactionsLastMinuteSucessfully() throws Exception {
+        String response = mockMvc.perform(get("/transacao/estatistica")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-    private void createTransaction() {
-        SaveTransactionDTO saveTransactionDTO = new SaveTransactionDTO(1F, OffsetDateTime.now());
+        GetStatisticLastMinuteDTO statisticLastMinuteDTO = objectMapper.readValue(response, GetStatisticLastMinuteDTO.class);
+        assertNotNull(statisticLastMinuteDTO);
+        assertEquals(2L, statisticLastMinuteDTO.count());
+        assertEquals(new BigDecimal("29.40"), statisticLastMinuteDTO.sum());
+        assertEquals(new BigDecimal("14.70"), statisticLastMinuteDTO.avg());
+        assertEquals(new BigDecimal("14.70"), statisticLastMinuteDTO.min());
+        assertEquals(new BigDecimal("14.70"), statisticLastMinuteDTO.max());
+    }
+
+    @Test
+    void throwBadRequestWhenQueryReturnsError() throws Exception {
+        mockMvc.perform(get("/transacao/estatistica")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+    }
+
+    private SaveTransactionDTO createTransaction() {
+        SaveTransactionDTO saveTransactionDTO = new SaveTransactionDTO(14.70F, OffsetDateTime.now());
         transactionRepository.save(new Transaction(saveTransactionDTO));
+        return saveTransactionDTO;
     }
 }

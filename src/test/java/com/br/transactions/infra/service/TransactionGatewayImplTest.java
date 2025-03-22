@@ -1,5 +1,6 @@
 package com.br.transactions.infra.service;
 
+import com.br.transactions.core.domain.transaction.GetStatisticLastMinuteDTO;
 import com.br.transactions.core.domain.transaction.SaveTransactionDTO;
 import com.br.transactions.infra.entity.transaction.Transaction;
 import com.br.transactions.infra.exception.transaction.TransactionException;
@@ -15,11 +16,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -83,20 +86,6 @@ class TransactionGatewayImplTest {
     }
 
     @Test
-    void throwTransactionExceptionWhen() {
-        Set<ConstraintViolation<SaveTransactionDTO>> violations = mock(Set.class);
-        when(violations.isEmpty()).thenReturn(false);
-
-        when(validator.validate(saveTransactionDTO)).thenReturn(violations);
-
-        TransactionException exception = assertThrows(TransactionException.class, () -> {
-            transactionGatewayImpl.saveTransaction(saveTransactionDTO);
-        });
-
-        assertEquals(TransactionException.class, exception.getClass());
-    }
-
-    @Test
     void deleteTransactionSucessfully() {
         doNothing().when(transactionRepository).deleteById(1L);
 
@@ -116,7 +105,39 @@ class TransactionGatewayImplTest {
         assertEquals(TransactionException.class, exception.getClass());
     }
 
+    @Test
+    void getTransactionsLastMinuteSucessfully() {
+        GetStatisticLastMinuteDTO getStatisticLastMinuteDTO = getStatisticLastMinuteDTO();
+        when(transactionRepository.findStatisticDataHoraBetween(any(), any())).thenReturn(getStatisticLastMinuteDTO);
+
+        GetStatisticLastMinuteDTO statisticLastMinuteDTO = transactionGatewayImpl.getStatisticLastMinuteDTO();
+
+        verify(transactionRepository).findStatisticDataHoraBetween(any(), any());
+        assertNotNull(statisticLastMinuteDTO);
+        assertEquals(getStatisticLastMinuteDTO.count(), statisticLastMinuteDTO.count());
+        assertEquals(getStatisticLastMinuteDTO.sum(), statisticLastMinuteDTO.sum());
+        assertEquals(getStatisticLastMinuteDTO.avg(), statisticLastMinuteDTO.avg());
+        assertEquals(getStatisticLastMinuteDTO.min(), statisticLastMinuteDTO.min());
+        assertEquals(getStatisticLastMinuteDTO.max(), statisticLastMinuteDTO.max());
+    }
+
+    @Test
+    void throwTransactionExceptionWhenQueryReturnsError() {
+        doThrow(new RuntimeException()).when(transactionRepository).findStatisticDataHoraBetween(any(), any());
+
+        TransactionException exception = assertThrows(TransactionException.class, () -> {
+            transactionGatewayImpl.getStatisticLastMinuteDTO();
+        });
+
+        assertEquals(TransactionException.class, exception.getClass());
+    }
+
+
     private SaveTransactionDTO createSaveTransactionDTO() {
         return new SaveTransactionDTO(1F, OffsetDateTime.now());
+    }
+
+    private GetStatisticLastMinuteDTO getStatisticLastMinuteDTO() {
+        return new GetStatisticLastMinuteDTO(2L, new BigDecimal("44.44"), new BigDecimal("11.60"), new BigDecimal("11.60"), new BigDecimal("15.60"));
     }
 }

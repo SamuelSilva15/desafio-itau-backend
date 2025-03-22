@@ -49,7 +49,7 @@ public class TransactionGatewayImpl implements TransactionGateway {
     @Override
     public GetStatisticLastMinuteDTO getStatisticLastMinuteDTO() {
         try {
-            return transactionRepository.findStatisticyDataHoraBetween(OffsetDateTime.now(), OffsetDateTime.now().plusMinutes(5));
+            return transactionRepository.findStatisticDataHoraBetween(OffsetDateTime.now().minusMinutes(1), OffsetDateTime.now());
         } catch (Exception e) {
             throw new TransactionException();
         }
