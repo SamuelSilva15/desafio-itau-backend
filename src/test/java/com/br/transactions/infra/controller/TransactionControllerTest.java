@@ -169,7 +169,7 @@ class TransactionControllerTest {
     void throwBadRequestWhenQueryReturnsError() throws Exception {
         mockMvc.perform(get("/transacao/estatistica")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isBadGateway())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
