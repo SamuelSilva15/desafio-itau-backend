@@ -3,10 +3,9 @@ package com.br.transactions.infra.controller;
 import com.br.transactions.core.domain.transaction.GetStatisticLastMinuteDTO;
 import com.br.transactions.core.domain.transaction.SaveTransactionDTO;
 import com.br.transactions.usecase.statistic.GetStatisticUsecase;
-import com.br.transactions.usecase.transaction.save.SaveTransactionUsecase;
 import com.br.transactions.usecase.transaction.deleteById.DeleteTransactionByIdUsecase;
+import com.br.transactions.usecase.transaction.save.SaveTransactionUsecase;
 import lombok.AllArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,7 +26,7 @@ public class TransactionController {
     private final GetStatisticUsecase getStatisticUsecase;
 
     @PostMapping
-    ResponseEntity<HttpStatus> saveTransaction(@RequestBody SaveTransactionDTO saveTransactionDTO) throws BadRequestException {
+    ResponseEntity<HttpStatus> saveTransaction(@RequestBody SaveTransactionDTO saveTransactionDTO) {
         this.saveTransactionUsecase.execute(saveTransactionDTO);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }

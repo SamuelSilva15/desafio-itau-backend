@@ -1,5 +1,6 @@
 package com.br.transactions.infra.handler.transaction;
 
+import com.br.transactions.core.domain.response.ErrorResponseDTO;
 import com.br.transactions.infra.exception.transaction.TransactionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +12,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class TransactionExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(TransactionException.class)
-    private ResponseEntity<HttpStatus> handleTransactionException(TransactionException transactionException) {
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+    private ResponseEntity<ErrorResponseDTO> handleTransactionException(TransactionException transactionException) {
+        return new ResponseEntity<>(new ErrorResponseDTO(transactionException.getMessage()), HttpStatus.UNPROCESSABLE_ENTITY);
     }
 }

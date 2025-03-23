@@ -52,7 +52,7 @@ class TransactionGatewayImplTest {
     }
 
     @Test
-    void saveTransactionSucessfully() throws BadRequestException {
+    void shouldSaveTransactionSucessfully() {
         Set<ConstraintViolation<SaveTransactionDTO>> violations = new HashSet<>();
         when(validator.validate(saveTransactionDTO)).thenReturn(violations);
 
@@ -66,16 +66,19 @@ class TransactionGatewayImplTest {
     void shouldThrowBadRequestExceptionWhenTransactionFails() {
         doThrow(new RuntimeException()).when(transactionRepository).save(any(Transaction.class));
 
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+        TransactionException exception = assertThrows(TransactionException.class, () -> {
             transactionGatewayImpl.saveTransaction(saveTransactionDTO);
         });
 
-        assertEquals(BadRequestException.class, exception.getClass());}
+        assertEquals(TransactionException.class, exception.getClass());
+        assertEquals("Error to save transaction.", exception.getMessage());
+    }
 
     @Test
-    void throwTransactionExceptionWhenViolationsInSaveTransactionDTOIsNotEmpty() {
-        Set<ConstraintViolation<SaveTransactionDTO>> violations = mock(Set.class);
-        when(violations.isEmpty()).thenReturn(false);
+    void shouldThrowTransactionExceptionWhenViolationsInSaveTransactionDTOIsNotEmpty() {
+
+        Set<ConstraintViolation<SaveTransactionDTO>> violations = new HashSet<>();
+        violations.add(mock(ConstraintViolation.class));
 
         when(validator.validate(saveTransactionDTO)).thenReturn(violations);
 
@@ -84,10 +87,11 @@ class TransactionGatewayImplTest {
         });
 
         assertEquals(TransactionException.class, exception.getClass());
+        assertEquals("Error to save transaction: " + exception.getCause(), exception.getMessage());
     }
 
     @Test
-    void deleteTransactionSucessfully() {
+    void shouldDeleteTransactionSucessfully() {
         when(transactionRepository.findById(any())).thenReturn(Optional.of(new Transaction(saveTransactionDTO)));
         doNothing().when(transactionRepository).delete(any());
 
@@ -97,19 +101,20 @@ class TransactionGatewayImplTest {
     }
 
     @Test
-    void throwTransactionExceptionWhenTransactionIdIsNotFound() {
+    void shouldThrowTransactionExceptionWhenTransactionIdIsNotFound() {
         when(transactionRepository.findById(any())).thenReturn(Optional.of(new Transaction(saveTransactionDTO)));
-        doThrow(new TransactionException()).when(transactionRepository).delete(any());
+        doThrow(new TransactionException("Error to delete transaction: transaction not found")).when(transactionRepository).delete(any());
 
         TransactionException exception = assertThrows(TransactionException.class, () -> {
             transactionGatewayImpl.deleteById(1L);
         });
 
         assertEquals(TransactionException.class, exception.getClass());
+        assertEquals("Error to delete transaction: transaction not found.", exception.getMessage());
     }
 
     @Test
-    void getTransactionsLastMinuteSucessfully() {
+    void shouldGetTransactionsLastMinuteSucessfully() {
         GetStatisticLastMinuteDTO getStatisticLastMinuteDTO = getStatisticLastMinuteDTO();
         when(transactionRepository.findStatisticDataHoraBetween(any(), any())).thenReturn(getStatisticLastMinuteDTO);
 
@@ -125,7 +130,7 @@ class TransactionGatewayImplTest {
     }
 
     @Test
-    void throwTransactionExceptionWhenQueryReturnsError() {
+    void shouldThrowTransactionExceptionWhenQueryReturnsError() {
         doThrow(new RuntimeException()).when(transactionRepository).findStatisticDataHoraBetween(any(), any());
 
         TransactionException exception = assertThrows(TransactionException.class, () -> {
@@ -133,6 +138,7 @@ class TransactionGatewayImplTest {
         });
 
         assertEquals(TransactionException.class, exception.getClass());
+        assertEquals("Error to get last minute statistics.", exception.getMessage());
     }
 
 

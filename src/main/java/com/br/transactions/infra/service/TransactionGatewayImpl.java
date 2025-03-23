@@ -11,10 +11,9 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import lombok.AllArgsConstructor;
-import org.apache.coyote.BadRequestException;
-import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
 import java.util.Set;
@@ -29,7 +28,7 @@ public class TransactionGatewayImpl implements TransactionGateway {
 
     @Override
     @Transactional
-    public void saveTransaction(SaveTransactionDTO saveTransactionDTO) throws BadRequestException {
+    public void saveTransaction(SaveTransactionDTO saveTransactionDTO) {
         logger.info("Starting saving transaction");
         validateSaveTransactionDTO(saveTransactionDTO);
 
@@ -38,8 +37,8 @@ public class TransactionGatewayImpl implements TransactionGateway {
             transactionRepository.save(transaction);
             logger.info("Sucess to save transaction");
         } catch (Exception e) {
-            logger.error("Error to save transaction: {}", e.getMessage());
-            throw new BadRequestException();
+            logger.error("Error to save transaction");
+            throw new TransactionException("Error to save transaction.");
         }
 
         logger.info("End of save transaction");
@@ -54,8 +53,8 @@ public class TransactionGatewayImpl implements TransactionGateway {
             transactionRepository.delete(transaction);
             logger.info("Sucess to delete transaction");
         } catch (Exception e) {
-            logger.error("Error to delete transaction: {}", e.getMessage());
-            throw new TransactionException();
+            logger.error("Error to delete transaction: ", e);
+            throw new TransactionException("Error to delete transaction: transaction not found.");
         }
 
         logger.info("End of delete transaction");
@@ -69,7 +68,7 @@ public class TransactionGatewayImpl implements TransactionGateway {
             return transactionRepository.findStatisticDataHoraBetween(OffsetDateTime.now().minusMinutes(1), OffsetDateTime.now());
         } catch (Exception e) {
             logger.error("Error to get last minute statistics: {}", e.getMessage());
-            throw new TransactionException();
+            throw new TransactionException("Error to get last minute statistics.");
         }
     }
 
@@ -78,8 +77,8 @@ public class TransactionGatewayImpl implements TransactionGateway {
 
         Set<ConstraintViolation<SaveTransactionDTO>> violations = validator.validate(saveTransactionDTO);
         if (!violations.isEmpty()) {
-            logger.error("Errors to validate SaveTransactionDTO: {}", violations);
-            throw new TransactionException();
+            logger.error("Error to validate transaction: {}", violations.iterator().next().getMessage());
+            throw new TransactionException("Error to save transaction: " + violations.iterator().next().getMessage());
         }
 
         logger.info("End of validations to SaveTransactionDTO");

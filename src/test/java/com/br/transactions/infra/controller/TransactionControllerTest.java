@@ -42,7 +42,7 @@ class TransactionControllerTest {
 
     @Test
     @Order(1)
-    void saveTransactionSucessfully() throws Exception {
+    void shouldSaveTransactionSucessfully() throws Exception {
         SaveTransactionDTO saveTransactionDTO = createTransaction();
 
         String transactionJson = objectMapper.writeValueAsString(saveTransactionDTO);
@@ -58,71 +58,83 @@ class TransactionControllerTest {
 
     @Test
     @Order(2)
-    void throwUnprocessableEntityWhenValueIsNull() throws Exception {
+    void shouldThrowUnprocessableEntityWhenValueIsNull() throws Exception {
         SaveTransactionDTO saveTransactionDTO = new SaveTransactionDTO(null, OffsetDateTime.now());
         String transactionJson = objectMapper.writeValueAsString(saveTransactionDTO);
 
 
-        mockMvc.perform(post("/transacao")
+        String response = mockMvc.perform(post("/transacao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(transactionJson))
                 .andExpect(status().isUnprocessableEntity())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
+
+        String errorMessage = getErrorMessage(response);
+        assertEquals("Error to save transaction: Valor precisa ser preenchido.", errorMessage);
     }
 
     @Test
     @Order(3)
-    void throwUnprocessableEntityWhenValueIsNegative() throws Exception {
+    void shouldThrowUnprocessableEntityWhenValueIsNegative() throws Exception {
         SaveTransactionDTO saveTransactionDTO = new SaveTransactionDTO(-10.5F, OffsetDateTime.now());
         String transactionJson = objectMapper.writeValueAsString(saveTransactionDTO);
 
 
-        mockMvc.perform(post("/transacao")
+        String response = mockMvc.perform(post("/transacao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(transactionJson))
                 .andExpect(status().isUnprocessableEntity())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
+
+        String errorMessage = getErrorMessage(response);
+        assertEquals("Error to save transaction: Valor não pode ser negativo. Deve igual ou maior que zero.", errorMessage);
     }
 
     @Test
     @Order(4)
-    void throwUnprocessableEntityWhenDateAnHourIsNull() throws Exception {
+    void shouldThrowUnprocessableEntityWhenDateAnHourIsNull() throws Exception {
         SaveTransactionDTO saveTransactionDTO = new SaveTransactionDTO(1F, null);
 
         String transactionJson = objectMapper.writeValueAsString(saveTransactionDTO);
 
-        mockMvc.perform(post("/transacao")
+        String response = mockMvc.perform(post("/transacao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(transactionJson))
                 .andExpect(status().isUnprocessableEntity())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
+
+        String errorMessage = getErrorMessage(response);
+        assertEquals("Error to save transaction: Data e hora precisam ser preenchidos.", errorMessage);
     }
 
     @Test
     @Order(5)
-    void throwUnprocessableEntityWhenDateAnHourIsFuture() throws Exception {
+    void shouldThrowUnprocessableEntityWhenDateAnHourIsFuture() throws Exception {
         SaveTransactionDTO saveTransactionDTO = new SaveTransactionDTO(1F, OffsetDateTime.now().plus(5, ChronoUnit.DAYS));
 
         String transactionJson = objectMapper.writeValueAsString(saveTransactionDTO);
 
-        mockMvc.perform(post("/transacao")
+        String response = mockMvc.perform(post("/transacao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(transactionJson))
                 .andExpect(status().isUnprocessableEntity())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
+
+        String errorMessage = getErrorMessage(response);
+        assertEquals("Error to save transaction: Transação não pode ser feita no futuro.", errorMessage);
     }
 
     @Test
     @Order(6)
-    void throwBadRequestWhenJsonIsInvalid() throws Exception {
+    void shouldThrowBadRequestWhenJsonIsInvalid() throws Exception {
         String invalidJson = "{ \"valor\": 10, \"dataHora\": }";
 
         String transactionJson = objectMapper.writeValueAsString(invalidJson);
@@ -138,7 +150,7 @@ class TransactionControllerTest {
 
     @Test
     @Order(7)
-    void deleteTransactionByIdSucessfully() throws Exception {
+    void shouldDeleteTransactionByIdSucessfully() throws Exception {
         createTransaction();
         mockMvc.perform(delete("/transacao/{transactionId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -150,18 +162,21 @@ class TransactionControllerTest {
 
     @Test
     @Order(7)
-    void throwBadRequestWhenTransactionIdDontExists() throws Exception {
-        mockMvc.perform(delete("/transacao/{transactionId}", 21L)
+    void shouldThrowBadRequestWhenTransactionIdDontExists() throws Exception {
+        String response = mockMvc.perform(delete("/transacao/{transactionId}", 21L)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnprocessableEntity())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
+
+        String errorMessage = getErrorMessage(response);
+        assertEquals("Error to delete transaction: transaction not found.", errorMessage);
     }
 
     @Test
     @Order(8)
-    void getTransactionsLastMinuteSucessfully() throws Exception {
+    void shouldGetTransactionsLastMinuteSucessfully() throws Exception {
         String response = mockMvc.perform(get("/transacao/estatistica")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -180,13 +195,13 @@ class TransactionControllerTest {
 
     @Test
     @Order(9)
-    void throwBadRequestWhenQueryReturnsError() throws Exception {
+    void shouldThrowBadRequestWhenQueryReturnsError() throws Exception {
         Transaction t1 = new Transaction();
         t1.setValor(Float.MAX_VALUE);
         t1.setDataHora(OffsetDateTime.now().minusSeconds(30));
         transactionRepository.save(t1);
 
-        mockMvc.perform(get("/transacao/estatistica")
+        String response = mockMvc.perform(get("/transacao/estatistica")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnprocessableEntity())
                 .andReturn()
@@ -194,11 +209,18 @@ class TransactionControllerTest {
                 .getContentAsString();
 
         transactionRepository.delete(t1);
+
+        String errorMessage = getErrorMessage(response);
+        assertEquals("Error to get last minute statistics.", errorMessage);
     }
 
     private SaveTransactionDTO createTransaction() {
         SaveTransactionDTO saveTransactionDTO = new SaveTransactionDTO(14.70F, OffsetDateTime.now());
         transactionRepository.save(new Transaction(saveTransactionDTO));
         return saveTransactionDTO;
+    }
+
+    private static String getErrorMessage(String response) {
+        return response.replaceAll("\"errorMessage\":\"", "").replaceAll("\"", "").replaceAll("[{}]", "").trim();
     }
 }
