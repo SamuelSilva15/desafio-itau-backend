@@ -177,7 +177,7 @@ class TransactionControllerTest {
     @Test
     @Order(8)
     void shouldGetTransactionsLastMinuteSucessfully() throws Exception {
-        String response = mockMvc.perform(get("/transacao/estatistica")
+        String response = mockMvc.perform(get("/transacao/estatistica?time=60")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn()
@@ -195,6 +195,30 @@ class TransactionControllerTest {
 
     @Test
     @Order(9)
+    void shouldGetTransactionsLastFiveMinuteSucessfully() throws Exception {
+        Transaction transaction = new Transaction();
+        transaction.setValor(1F);
+        transaction.setDataHora(OffsetDateTime.now().minusSeconds(298));
+        transactionRepository.save(transaction);
+
+        String response = mockMvc.perform(get("/transacao/estatistica?time=300")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        GetStatisticLastMinuteDTO statisticLastMinuteDTO = objectMapper.readValue(response, GetStatisticLastMinuteDTO.class);
+        assertNotNull(statisticLastMinuteDTO);
+        assertEquals(3L, statisticLastMinuteDTO.count());
+        assertEquals(new BigDecimal("30.40"), statisticLastMinuteDTO.sum());
+        assertEquals(new BigDecimal("10.13"), statisticLastMinuteDTO.avg());
+        assertEquals(new BigDecimal("1.00"), statisticLastMinuteDTO.min());
+        assertEquals(new BigDecimal("14.70"), statisticLastMinuteDTO.max());
+    }
+
+    @Test
+    @Order(10)
     void shouldThrowBadRequestWhenQueryReturnsError() throws Exception {
         Transaction t1 = new Transaction();
         t1.setValor(Float.MAX_VALUE);

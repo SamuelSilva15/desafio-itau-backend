@@ -7,7 +7,6 @@ import com.br.transactions.infra.exception.transaction.TransactionException;
 import com.br.transactions.infra.repository.transaction.TransactionRepository;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
-import org.apache.coyote.BadRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -118,7 +117,7 @@ class TransactionGatewayImplTest {
         GetStatisticLastMinuteDTO getStatisticLastMinuteDTO = getStatisticLastMinuteDTO();
         when(transactionRepository.findStatisticDataHoraBetween(any(), any())).thenReturn(getStatisticLastMinuteDTO);
 
-        GetStatisticLastMinuteDTO statisticLastMinuteDTO = transactionGatewayImpl.getStatisticLastMinuteDTO();
+        GetStatisticLastMinuteDTO statisticLastMinuteDTO = transactionGatewayImpl.getStatisticLastMinuteDTO(60L);
 
         verify(transactionRepository).findStatisticDataHoraBetween(any(), any());
         assertNotNull(statisticLastMinuteDTO);
@@ -134,7 +133,7 @@ class TransactionGatewayImplTest {
         doThrow(new RuntimeException()).when(transactionRepository).findStatisticDataHoraBetween(any(), any());
 
         TransactionException exception = assertThrows(TransactionException.class, () -> {
-            transactionGatewayImpl.getStatisticLastMinuteDTO();
+            transactionGatewayImpl.getStatisticLastMinuteDTO(60L);
         });
 
         assertEquals(TransactionException.class, exception.getClass());

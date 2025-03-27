@@ -61,11 +61,11 @@ public class TransactionGatewayImpl implements TransactionGateway {
     }
 
     @Override
-    public GetStatisticLastMinuteDTO getStatisticLastMinuteDTO() {
+    public GetStatisticLastMinuteDTO getStatisticLastMinuteDTO(Long time) {
         logger.info("Starting to get last minute statistics");
 
         try {
-            return transactionRepository.findStatisticDataHoraBetween(OffsetDateTime.now().minusMinutes(1), OffsetDateTime.now());
+            return transactionRepository.findStatisticDataHoraBetween(OffsetDateTime.now().minusSeconds(time), OffsetDateTime.now());
         } catch (Exception e) {
             logger.error("Error to get last minute statistics: {}", e.getMessage());
             throw new TransactionException("Error to get last minute statistics.");

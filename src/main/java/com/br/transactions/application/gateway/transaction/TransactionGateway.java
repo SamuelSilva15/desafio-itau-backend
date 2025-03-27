@@ -6,5 +6,5 @@ import com.br.transactions.core.domain.transaction.SaveTransactionDTO;
 public interface TransactionGateway {
     void saveTransaction(SaveTransactionDTO saveTransactionDTO);
     void deleteById(Long transactionId);
-    GetStatisticLastMinuteDTO getStatisticLastMinuteDTO();
+    GetStatisticLastMinuteDTO getStatisticLastMinuteDTO(Long time);
 }

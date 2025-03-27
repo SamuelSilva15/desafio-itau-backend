@@ -13,7 +13,7 @@ public class GetStatisticUsecaseImpl implements GetStatisticUsecase {
     private final TransactionGateway transactionGateway;
 
     @Override
-    public GetStatisticLastMinuteDTO execute() {
-        return transactionGateway.getStatisticLastMinuteDTO();
+    public GetStatisticLastMinuteDTO execute(Long time) {
+        return transactionGateway.getStatisticLastMinuteDTO(time);
     }
 }
