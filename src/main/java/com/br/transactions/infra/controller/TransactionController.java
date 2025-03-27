@@ -5,6 +5,7 @@ import com.br.transactions.core.domain.transaction.SaveTransactionDTO;
 import com.br.transactions.usecase.statistic.GetStatisticUsecase;
 import com.br.transactions.usecase.transaction.deleteById.DeleteTransactionByIdUsecase;
 import com.br.transactions.usecase.transaction.save.SaveTransactionUsecase;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,18 +26,21 @@ public class TransactionController {
     private final DeleteTransactionByIdUsecase deleteTransactionByIdUsecase;
     private final GetStatisticUsecase getStatisticUsecase;
 
+    @Operation(summary = "Endpoint to save transaction")
     @PostMapping
     ResponseEntity<HttpStatus> saveTransaction(@RequestBody SaveTransactionDTO saveTransactionDTO) {
         this.saveTransactionUsecase.execute(saveTransactionDTO);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @Operation(summary = "Endpoint to delete transaction by id")
     @DeleteMapping("/{transactionId}")
     ResponseEntity<HttpStatus> deleteTransaction(@PathVariable("transactionId") Long transactionId)  {
         this.deleteTransactionByIdUsecase.execute(transactionId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @Operation(summary = "Endpoint to get the transaction statistics of the last minute")
     @GetMapping("/estatistica")
     ResponseEntity<GetStatisticLastMinuteDTO> getEstatistica() {
         return ResponseEntity.ok(this.getStatisticUsecase.execute());
