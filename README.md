@@ -1,6 +1,6 @@
 ## Projeto de Gerenciamento de transação
 
-Este projeto realiza a consulta, salvamento e processamento de estatésticas configuráveis, utilizando tecnologias como Java (Spring Boot), Docker, Swagger, Prometheus e Grafana.
+Este projeto realiza a consulta, salvamento e processamento de estatésticas configuráveis de transações, utilizando tecnologias como Java (Spring Boot), Docker, Swagger, Prometheus e Grafana.
 
 📌 Tecnologias Utilizadas
 
