@@ -5,6 +5,6 @@ scrape_configs:
   - job_name: 'api-transactions'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ["docker.host.interval:8080"]
+      - targets: ["172.17.0.1:8080"]
         labels:
           application: "api-transaction"

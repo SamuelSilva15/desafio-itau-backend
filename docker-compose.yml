@@ -1,5 +1,9 @@
 version: '3.7'
 
+volumes:
+  prometheus_data:
+  grafana_data:
+
 services:
   prometheus:
     image: prom/prometheus:v2.44.0
@@ -8,6 +12,13 @@ services:
       - "9090:9090"
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000
     networks:
       - monitoring
 
